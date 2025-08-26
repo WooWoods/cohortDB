@@ -270,6 +270,6 @@ class PicardQualityYield(BaseModel):
 class Screen(BaseModel):
     sample = TextField(primary_key=True)
     human = FloatField(null=True)
-    dna = FloatField(null=True)
+    lambda_dna = FloatField(null=True)
     pUC19 = FloatField(null=True)
     human_unmap = FloatField(null=True)
