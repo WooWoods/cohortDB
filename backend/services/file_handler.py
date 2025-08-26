@@ -80,25 +80,25 @@ def process_ages_file(ages_file):
     for _, row in ages_df.iterrows():
         # Clean up column names
         row_data = {
-            "sample": row["Sample"],
-            "gender": row["gender"],
-            "age": row["age"],
-            "sample_date": row["sampleDate"],
-            "menopausal_status": row["menopausalStatus"],
-            "ptid": row["ptid"],
-            "esti_gender": row["esti_gender"],
-            "cfdna": row["cfdna"],
-            "wbc": row["WBC"],
-            "colon": row["colon"],
-            "liver": row["liver"],
-            "ovary": row["ovary"],
-            "pancreas": row["pancreas"],
-            "prostate": row["prostate"],
-            "small_intestine": row["small_intestine"],
-            "spleen": row["spleen"],
-            "stomach": row["stomach"],
-            "adj_ovary_menopause": row["adjOvary(menopause)"],
-            "adj_ovary_no_menopause": row["adjOvary(noMenopause)"]
+            "sample": row.get("Sample"),
+            "gender": row.get("gender"),
+            "age": row.get("age"),
+            "sample_date": row.get("sampleDate"),
+            "menopausal_status": row.get("menopausalStatus"),
+            "ptid": row.get("ptid"),
+            "esti_gender": row.get("esti_gender"),
+            "cfdna": row.get("cfdna"),
+            "wbc": row.get("WBC"),
+            "colon": row.get("colon"),
+            "liver": row.get("liver"),
+            "ovary": row.get("ovary"),
+            "pancreas": row.get("pancreas"),
+            "prostate": row.get("prostate"),
+            "small_intestine": row.get("small_intestine"),
+            "spleen": row.get("spleen"),
+            "stomach": row.get("stomach"),
+            "adj_ovary_menopause": row.get("adjOvary(menopause)"),
+            "adj_ovary_no_menopause": row.get("adjOvary(noMenopause)")
         }
         cleaned_row_data = replace_nan_with_none(row_data)
         ages_schema = schemas.ReportedAgesSchema(**cleaned_row_data)
@@ -113,9 +113,9 @@ def process_qc_file(qc_file):
         if sheet_name == "bsrate":
             for _, row in df.iterrows():
                 row_data = {
-                    "sample": row["Sample"],
-                    "puc19vector": row["pUC19vector"],
-                    "lambda_dna_conversion_rate": row["λ-DNA(ConversionRate)"]
+                    "sample": row.get("Sample"),
+                    "puc19vector": row.get("pUC19vector"),
+                    "lambda_dna_conversion_rate": row.get("λ-DNA(ConversionRate)")
                 }
                 cleaned_row_data = replace_nan_with_none(row_data)
                 bs_rate_schema = schemas.BsRateSchema(**cleaned_row_data)
@@ -123,19 +123,19 @@ def process_qc_file(qc_file):
         elif sheet_name == "coverage":
             for _, row in df.iterrows():
                 row_data = {
-                    "sample": row["Sample"],
-                    "pct_v2_sites_5x": row["PCT_V2_sites_5X"],
-                    "pct_v2_sites_15x": row["PCT_V2_sites_15X"],
-                    "pct_v2_sites_20x": row["PCT_V2_sites_20X"],
-                    "pct_pcages_sites_5x": row["PCT_PCages_sites_5X"],
-                    "pct_pcages_sites_15x": row["PCT_PCages_sites_15X"],
-                    "pct_pcages_sites_20x": row["PCT_PCages_sites_20X"],
-                    "pct_horvath_sites_5x": row["PCT_horvath_sites_5X"],
-                    "pct_horvath_sites_15x": row["PCT_horvath_sites_15X"],
-                    "pct_horvath_sites_20x": row["PCT_horvath_sites_20X"],
-                    "pct_skinblood_sites_5x": row["PCT_skinblood_sites_5X"],
-                    "pct_skinblood_sites_15x": row["PCT_skinblood_sites_15X"],
-                    "pct_skinblood_sites_20x": row["PCT_skinblood_sites_20X"]
+                    "sample": row.get("Sample"),
+                    "pct_v2_sites_5x": row.get("PCT_V2_sites_5X"),
+                    "pct_v2_sites_15x": row.get("PCT_V2_sites_15X"),
+                    "pct_v2_sites_20x": row.get("PCT_V2_sites_20X"),
+                    "pct_pcages_sites_5x": row.get("PCT_PCages_sites_5X"),
+                    "pct_pcages_sites_15x": row.get("PCT_PCages_sites_15X"),
+                    "pct_pcages_sites_20x": row.get("PCT_PCages_sites_20X"),
+                    "pct_horvath_sites_5x": row.get("PCT_horvath_sites_5X"),
+                    "pct_horvath_sites_15x": row.get("PCT_horvath_sites_15X"),
+                    "pct_horvath_sites_20x": row.get("PCT_horvath_sites_20X"),
+                    "pct_skinblood_sites_5x": row.get("PCT_skinblood_sites_5X"),
+                    "pct_skinblood_sites_15x": row.get("PCT_skinblood_sites_15X"),
+                    "pct_skinblood_sites_20x": row.get("PCT_skinblood_sites_20X")
                 }
                 cleaned_row_data = replace_nan_with_none(row_data)
                 coverage_schema = schemas.CoverageSchema(**cleaned_row_data)
