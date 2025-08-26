@@ -49,6 +49,10 @@ const DatabasePage = () => {
     setRefreshTrigger((prev) => prev + 1); // Increment to trigger refetch
   };
 
+  const handleSearch = (data: FilterResponse) => {
+    setFilteredData(data);
+  };
+
   return (
     <div className="h-screen w-screen">
       <ResizablePanelGroup
@@ -67,7 +71,7 @@ const DatabasePage = () => {
         <ResizableHandle withHandle />
         <ResizablePanel defaultSize={75}>
           <div className="flex flex-col h-full p-4 space-y-4">
-            <Header onUploadSuccess={handleUploadSuccess} />
+            <Header onUploadSuccess={handleUploadSuccess} onSearch={handleSearch} />
             <div className="flex-grow overflow-auto">
               {isLoading ? (
                 <div className="flex items-center justify-center h-full text-muted-foreground">

@@ -100,3 +100,26 @@ export async function filterData(filters: FilterCriteria): Promise<FilterRespons
     throw error;
   }
 }
+
+export async function searchData(sampleNames: string): Promise<FilterResponse> {
+  const formData = new FormData();
+  formData.append("samples", sampleNames);
+
+  try {
+    const response = await fetch(`${API_BASE_URL}/data/search`, {
+      method: "POST",
+      body: formData,
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.detail || "Failed to search data.");
+    }
+
+    return response.json();
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : "An unknown error occurred during search.";
+    toast.error(`Search failed: ${errorMessage}`);
+    throw error;
+  }
+}

@@ -1,4 +1,4 @@
-from fastapi import FastAPI, UploadFile, File, HTTPException
+from fastapi import FastAPI, UploadFile, File, HTTPException, Form
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
 from typing import List
@@ -71,6 +71,15 @@ async def download_data(samples: str):
 async def filter_data(filters: schemas.FilterSchema):
     try:
         data = crud.get_filtered_data(filters)
+        return data
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/api/v1/data/search")
+async def search_data(samples: str = Form(...)):
+    try:
+        sample_list = [s.strip() for s in samples.split(',')]
+        data = crud.get_data_by_samples(sample_list)
         return data
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
