@@ -4,6 +4,7 @@ import { Upload } from "lucide-react";
 import { uploadData } from "@/services/api";
 import { toast } from "sonner";
 import { useMutation } from "@tanstack/react-query";
+import { useAuth } from "@/context/AuthContext"; // Import useAuth
 
 interface UploadButtonProps {
   onUploadSuccess: () => void;
@@ -11,9 +12,16 @@ interface UploadButtonProps {
 
 const UploadButton: React.FC<UploadButtonProps> = ({ onUploadSuccess }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const { isAuthenticated } = useAuth(); // Get isAuthenticated from AuthContext
 
   const uploadMutation = useMutation({
-    mutationFn: (file: File) => uploadData(file),
+    mutationFn: async (file: File) => {
+      const token = localStorage.getItem('access_token'); // Retrieve token from localStorage
+      if (!token) {
+        throw new Error("No authentication token found. Please log in.");
+      }
+      return uploadData(file, token); // Pass token to uploadData
+    },
     onSuccess: (data) => {
       toast.success(data.message || "File uploaded successfully!");
       onUploadSuccess();
@@ -25,6 +33,10 @@ const UploadButton: React.FC<UploadButtonProps> = ({ onUploadSuccess }) => {
   });
 
   const handleUploadClick = () => {
+    if (!isAuthenticated) {
+      toast.error("You must be logged in to upload data.");
+      return;
+    }
     fileInputRef.current?.click();
   };
 
@@ -45,7 +57,7 @@ const UploadButton: React.FC<UploadButtonProps> = ({ onUploadSuccess }) => {
         style={{ display: "none" }}
         accept=".csv,.xlsx"
       />
-      <Button onClick={handleUploadClick} disabled={uploadMutation.isPending}>
+      <Button onClick={handleUploadClick} disabled={uploadMutation.isPending || !isAuthenticated}>
         <Upload className="mr-2 h-4 w-4" />
         {uploadMutation.isPending ? "Uploading..." : "Upload Data"}
       </Button>

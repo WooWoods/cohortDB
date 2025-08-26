@@ -16,13 +16,24 @@ export interface FilterResponse {
   [tableName: string]: Record<string, unknown>[];
 }
 
-export async function uploadData(file: File): Promise<UploadResponse> {
+export interface User {
+  id: number;
+  username: string;
+  is_admin: boolean;
+  created_at: string;
+}
+
+export async function uploadData(file: File, token: string): Promise<UploadResponse> {
   const formData = new FormData();
   formData.append("file", file);
 
+  console.log("DEBUG (Frontend): Token being sent for upload:", token); // Add this line
   try {
     const response = await fetch(`${API_BASE_URL}/data/upload`, {
       method: "POST",
+      headers: {
+        "Authorization": `Bearer ${token}`,
+      },
       body: formData,
     });
 
@@ -120,6 +131,60 @@ export async function searchData(searchTerm: string): Promise<FilterResponse> {
   } catch (error: unknown) {
     const errorMessage = error instanceof Error ? error.message : "An unknown error occurred during search.";
     toast.error(`Search failed: ${errorMessage}`);
+    throw error;
+  }
+}
+
+export async function loginUser(username: string, password: string): Promise<string> {
+  const formData = new URLSearchParams();
+  formData.append("username", username);
+  formData.append("password", password);
+
+  try {
+    const response = await fetch(`${API_BASE_URL}/auth/token`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded",
+      },
+      body: formData.toString(),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.detail || "Login failed.");
+    }
+
+    const data = await response.json();
+    return data.access_token;
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : "An unknown error occurred during login.";
+    toast.error(`Login failed: ${errorMessage}`);
+    throw error;
+  }
+}
+
+export function logoutUser(): void {
+  localStorage.removeItem('access_token');
+}
+
+export async function getMe(token: string): Promise<User> {
+  try {
+    const response = await fetch(`${API_BASE_URL}/auth/me`, {
+      method: "GET",
+      headers: {
+        "Authorization": `Bearer ${token}`,
+      },
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.detail || "Failed to fetch user data.");
+    }
+
+    return response.json();
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : "An unknown error occurred while fetching user data.";
+    toast.error(`Failed to get user data: ${errorMessage}`);
     throw error;
   }
 }

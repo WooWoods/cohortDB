@@ -3,6 +3,9 @@ import { Search } from "lucide-react";
 import UploadButton from "./UploadButton";
 import { searchData, FilterResponse } from "@/services/api";
 import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { useAuth } from "@/context/AuthContext";
+import { useNavigate } from "react-router-dom";
 
 interface HeaderProps {
   onUploadSuccess: () => void;
@@ -11,6 +14,8 @@ interface HeaderProps {
 
 const Header: React.FC<HeaderProps> = ({ onUploadSuccess, onSearch }) => {
   const [searchQuery, setSearchQuery] = useState<string>("");
+  const { isAuthenticated, user, logout } = useAuth();
+  const navigate = useNavigate();
 
   const handleSearch = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -24,6 +29,15 @@ const Header: React.FC<HeaderProps> = ({ onUploadSuccess, onSearch }) => {
     }
   };
 
+  const handleLoginClick = () => {
+    navigate('/login');
+  };
+
+  const handleLogoutClick = () => {
+    logout();
+    navigate('/login');
+  };
+
   return (
     <div className="flex items-center justify-between">
       <form onSubmit={handleSearch} className="relative w-full max-w-sm">
@@ -35,7 +49,16 @@ const Header: React.FC<HeaderProps> = ({ onUploadSuccess, onSearch }) => {
           onChange={(e) => setSearchQuery(e.target.value)}
         />
       </form>
-      <UploadButton onUploadSuccess={onUploadSuccess} />
+      {isAuthenticated && user?.is_admin ? (
+        <div className="flex items-center space-x-2">
+          <UploadButton onUploadSuccess={onUploadSuccess} />
+          <Button onClick={handleLogoutClick}>Log Out</Button>
+        </div>
+      ) : isAuthenticated ? (
+        <Button onClick={handleLogoutClick}>Log Out</Button>
+      ) : (
+        <Button onClick={handleLoginClick}>Log In</Button>
+      )}
     </div>
   );
 };
