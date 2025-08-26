@@ -271,7 +271,7 @@ def generate_excel_file(samples: list[str]):
     with pd.ExcelWriter(output, engine='openpyxl') as writer:
         for table_name, records in data.items():
             if records:
-                df = pd.DataFrame([record.__data__ for record in records])
+                df = pd.DataFrame([record for record in records])
                 df.to_excel(writer, sheet_name=table_name, index=False)
     
     output.seek(0)
