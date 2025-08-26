@@ -15,7 +15,7 @@ type Filter = {
 };
 
 interface SidebarProps {
-  onFilterApply: (data: FilterResponse) => void;
+  onFilterApply: (filters: FilterCriteria) => void;
 }
 
 const Sidebar: React.FC<SidebarProps> = ({ onFilterApply }) => {
@@ -23,9 +23,9 @@ const Sidebar: React.FC<SidebarProps> = ({ onFilterApply }) => {
 
   const filterMutation = useMutation({
     mutationFn: (criteria: FilterCriteria) => filterData(criteria),
-    onSuccess: (data) => {
+    onSuccess: () => {
       toast.success("Data filtered successfully!");
-      onFilterApply(data);
+      // The actual data update will be handled by DatabasePage based on the filters passed
     },
     onError: (error) => {
       toast.error(`Filter failed: ${error.message}`);
@@ -66,9 +66,10 @@ const Sidebar: React.FC<SidebarProps> = ({ onFilterApply }) => {
 
     if (Object.keys(criteria.filters).length > 0) {
       filterMutation.mutate(criteria);
+      onFilterApply(criteria); // Pass the criteria to the parent
     } else {
-      toast.info("No filters applied.");
-      onFilterApply({}); // Clear data if no filters are applied
+      toast.info("No filters applied. Displaying initial data.");
+      onFilterApply({ filters: {} }); // Pass empty filters to trigger initial data load
     }
   };
 

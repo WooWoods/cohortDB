@@ -4,7 +4,7 @@ import Header from "@/components/database/Header";
 import FilteredDataTable from "@/components/database/FilteredDataTable"; // Import the new component
 import Footer from "@/components/database/Footer";
 import { useState, useEffect } from "react";
-import { FilterResponse, filterData } from "@/services/api";
+import { FilterResponse, filterData, getInitialData, FilterCriteria } from "@/services/api";
 import { useQuery } from "@tanstack/react-query";
 
 const DatabasePage = () => {
@@ -14,7 +14,7 @@ const DatabasePage = () => {
   // Initial data fetch or refresh after upload/filter
   const { data, isLoading, isError, refetch, error } = useQuery({
     queryKey: ["cohortData", refreshTrigger],
-    queryFn: () => filterData({ filters: {} }), // Fetch all data initially
+    queryFn: () => getInitialData(), // Fetch initial data
   });
 
   useEffect(() => {
@@ -34,8 +34,15 @@ const DatabasePage = () => {
     refetch();
   }, [refreshTrigger]); // Only refetch when refreshTrigger changes
 
-  const handleFilterApply = (data: FilterResponse) => {
-    setFilteredData(data);
+  const handleFilterApply = async (filters: FilterCriteria) => {
+    if (Object.keys(filters.filters).length > 0) {
+      const data = await filterData(filters);
+      setFilteredData(data);
+    } else {
+      // If filters are cleared, refetch initial data
+      const data = await getInitialData();
+      setFilteredData(data);
+    }
   };
 
   const handleUploadSuccess = () => {

@@ -39,6 +39,25 @@ export async function uploadData(file: File): Promise<UploadResponse> {
   }
 }
 
+export async function getInitialData(): Promise<FilterResponse> {
+  try {
+    const response = await fetch(`${API_BASE_URL}/data/initial`, {
+      method: "GET",
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.detail || "Failed to fetch initial data.");
+    }
+
+    return response.json();
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : "An unknown error occurred during initial data fetch.";
+    toast.error(`Initial data fetch failed: ${errorMessage}`);
+    throw error;
+  }
+}
+
 export async function downloadData(samples: string[]): Promise<Blob> {
   const sampleQuery = samples.join(",");
   try {

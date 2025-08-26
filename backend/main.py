@@ -50,6 +50,14 @@ async def upload_data(file: UploadFile = File(...)):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+@app.get("/api/v1/data/initial")
+async def get_initial_data_route():
+    try:
+        data = crud.get_initial_data()
+        return data
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
 @app.get("/api/v1/data/download")
 async def download_data(samples: str):
     sample_list = [s.strip() for s in samples.split(',')]

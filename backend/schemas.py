@@ -31,15 +31,15 @@ class ReportedAgesSchema(BaseModel):
 
 class FastpSchema(BaseModel):
     sample: str
-    total_reads: Optional[int] = None
-    total_bases: Optional[int] = None
-    q20_bases: Optional[int] = None
-    q30_bases: Optional[int] = None
-    q20_rate: Optional[float] = None
-    q30_rate: Optional[float] = None
-    read1_mean_length: Optional[int] = None
-    read2_mean_length: Optional[int] = None
-    gc_content: Optional[float] = None
+    total_reads: Optional[str] = None
+    total_bases: Optional[str] = None
+    q20_bases: Optional[str] = None
+    q30_bases: Optional[str] = None
+    q20_rate: Optional[str] = None
+    q30_rate: Optional[str] = None
+    read1_mean_length: Optional[str] = None
+    read2_mean_length: Optional[str] = None
+    gc_content: Optional[str] = None
     passed_filter_reads: Optional[int] = None
     corrected_reads: Optional[int] = None
     corrected_bases: Optional[int] = None
@@ -53,17 +53,17 @@ class FastpSchema(BaseModel):
     read1_adapter_sequence: Optional[str] = None
     read2_adapter_sequence: Optional[str] = None
     total_polyx_trimmed_reads: Optional[int] = None
-    polyx_trimmed_reads: Optional[int] = None
+    polyx_trimmed_reads: Optional[str] = None
     total_polyx_trimmed_bases: Optional[int] = None
-    polyx_trimmed_bases: Optional[int] = None
-    read1_total_reads: Optional[int] = None
-    read1_total_bases: Optional[int] = None
-    read1_q20_bases: Optional[int] = None
-    read1_q30_bases: Optional[int] = None
-    read2_total_reads: Optional[int] = None
-    read2_total_bases: Optional[int] = None
-    read2_q20_bases: Optional[int] = None
-    read2_q30_bases: Optional[int] = None
+    polyx_trimmed_bases: Optional[str] = None
+    read1_total_reads: Optional[str] = None
+    read1_total_bases: Optional[str] = None
+    read1_q20_bases: Optional[str] = None
+    read1_q30_bases: Optional[str] = None
+    read2_total_reads: Optional[str] = None
+    read2_total_bases: Optional[str] = None
+    read2_q20_bases: Optional[str] = None
+    read2_q30_bases: Optional[str] = None
 
     class Config:
         from_attributes = True

@@ -1,5 +1,6 @@
 import models
 import schemas
+from playhouse.shortcuts import model_to_dict
 
 def upsert_reported_ages(ages_data: schemas.ReportedAgesSchema):
     models.ReportedAges.insert(**ages_data.dict()).on_conflict(
@@ -88,18 +89,18 @@ def get_data_by_samples(samples: list[str]):
     screen = models.Screen.select().where(models.Screen.sample.in_(samples))
     
     return {
-        "ReportedAges": list(reported_ages),
-        "BsRate": list(bs_rate),
-        "Coverage": list(coverage),
-        "Fastp": list(fastp),
-        "Markdup": list(markdup),
-        "PicardAlignmentSummary": list(picard_alignment_summary),
-        "PicardGcBias": list(picard_gc_bias),
-        "PicardGcBiasSummary": list(picard_gc_bias_summary),
-        "PicardHs": list(picard_hs),
-        "PicardInsertSize": list(picard_insert_size),
-        "PicardQualityYield": list(picard_quality_yield),
-        "Screen": list(screen)
+        "ReportedAges": [model_to_dict(r) for r in reported_ages],
+        "BsRate": [model_to_dict(b) for b in bs_rate],
+        "Coverage": [model_to_dict(c) for c in coverage],
+        "Fastp": [model_to_dict(f) for f in fastp],
+        "Markdup": [model_to_dict(m) for m in markdup],
+        "PicardAlignmentSummary": [model_to_dict(p) for p in picard_alignment_summary],
+        "PicardGcBias": [model_to_dict(p) for p in picard_gc_bias],
+        "PicardGcBiasSummary": [model_to_dict(p) for p in picard_gc_bias_summary],
+        "PicardHs": [model_to_dict(p) for p in picard_hs],
+        "PicardInsertSize": [model_to_dict(p) for p in picard_insert_size],
+        "PicardQualityYield": [model_to_dict(p) for p in picard_quality_yield],
+        "Screen": [model_to_dict(s) for s in screen]
     }
 
 def get_filtered_data(filters: schemas.FilterSchema):
@@ -134,4 +135,8 @@ def get_filtered_data(filters: schemas.FilterSchema):
                 query = query.where(field == value)
 
     samples = [item.sample for item in query]
+    return get_data_by_samples(samples)
+
+def get_initial_data(limit: int = 20):
+    samples = [item.sample for item in models.ReportedAges.select(models.ReportedAges.sample).limit(limit)]
     return get_data_by_samples(samples)
