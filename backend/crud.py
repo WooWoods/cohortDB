@@ -74,7 +74,42 @@ def upsert_screen(screen_data: schemas.ScreenSchema):
         update=screen_data.dict()
     ).execute()
 
+import re
+
+def get_samples_by_search_term(search_term: str) -> list[str]:
+    if search_term.endswith("*"):
+        # This is a prefix search
+        prefix = search_term[:-1].strip() # Remove the trailing '*'
+        
+        # Remove "CAP\d+WGS_" or "CAP\d+_" prefix from the search term if present
+        cleaned_prefix = re.sub(r"CAP\d+(WGS_|_)", "", prefix)
+        
+        # Ensure the search term starts with "MO" or "MS"
+        if not cleaned_prefix.startswith(("MO", "MS")):
+            return []
+        
+        # Construct a LIKE query for the relevant part of the sample name
+        like_pattern = f"%{cleaned_prefix}%"
+        
+        # Search across all models for samples matching the pattern
+        # We need to get distinct samples from one of the tables, e.g., ReportedAges
+        samples = models.ReportedAges.select(models.ReportedAges.sample).where(
+            models.ReportedAges.sample.ilike(like_pattern)
+        ).distinct()
+        return [s.sample for s in samples]
+    else:
+        # Exact match search
+        return [search_term]
+
 def get_data_by_samples(samples: list[str]):
+    if not samples:
+        return {
+            "ReportedAges": [], "BsRate": [], "Coverage": [], "Fastp": [],
+            "Markdup": [], "PicardAlignmentSummary": [], "PicardGcBias": [],
+            "PicardGcBiasSummary": [], "PicardHs": [], "PicardInsertSize": [],
+            "PicardQualityYield": [], "Screen": []
+        }
+
     reported_ages = models.ReportedAges.select().where(models.ReportedAges.sample.in_(samples))
     bs_rate = models.BsRate.select().where(models.BsRate.sample.in_(samples))
     coverage = models.Coverage.select().where(models.Coverage.sample.in_(samples))

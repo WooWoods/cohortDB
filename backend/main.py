@@ -76,10 +76,10 @@ async def filter_data(filters: schemas.FilterSchema):
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.post("/api/v1/data/search")
-async def search_data(samples: str = Form(...)):
+async def search_data(search_term: str = Form(...)):
     try:
-        sample_list = [s.strip() for s in samples.split(',')]
-        data = crud.get_data_by_samples(sample_list)
+        samples = crud.get_samples_by_search_term(search_term)
+        data = crud.get_data_by_samples(samples)
         return data
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

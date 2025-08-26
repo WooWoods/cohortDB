@@ -101,9 +101,9 @@ export async function filterData(filters: FilterCriteria): Promise<FilterRespons
   }
 }
 
-export async function searchData(sampleNames: string): Promise<FilterResponse> {
+export async function searchData(searchTerm: string): Promise<FilterResponse> {
   const formData = new FormData();
-  formData.append("samples", sampleNames);
+  formData.append("search_term", searchTerm);
 
   try {
     const response = await fetch(`${API_BASE_URL}/data/search`, {
