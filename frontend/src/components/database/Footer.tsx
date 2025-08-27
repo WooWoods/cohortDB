@@ -6,9 +6,10 @@ import { useMutation } from "@tanstack/react-query";
 
 interface FooterProps {
   filteredData: FilterResponse;
+  totalCount: number;
 }
 
-const Footer: React.FC<FooterProps> = ({ filteredData }) => {
+const Footer: React.FC<FooterProps> = ({ filteredData, totalCount }) => {
   const downloadMutation = useMutation({
     mutationFn: (samples: string[]) => downloadData(samples),
     onSuccess: (blob) => {
@@ -49,7 +50,10 @@ const Footer: React.FC<FooterProps> = ({ filteredData }) => {
   };
 
   return (
-    <div className="flex justify-end">
+    <div className="flex justify-between items-center">
+      <div className="text-sm text-muted-foreground">
+        Total entries: {totalCount}
+      </div>
       <Button onClick={handleDownloadClick} disabled={downloadMutation.isPending}>
         <Download className="mr-2 h-4 w-4" />
         {downloadMutation.isPending ? "Exporting..." : "Export Data"}

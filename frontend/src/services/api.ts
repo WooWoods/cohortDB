@@ -12,6 +12,13 @@ export interface FilterCriteria {
   };
 }
 
+export interface PaginatedFilterResponse {
+  data: {
+    [tableName: string]: Record<string, unknown>[];
+  };
+  total_count: number;
+}
+
 export interface FilterResponse {
   [tableName: string]: Record<string, unknown>[];
 }
@@ -50,9 +57,9 @@ export async function uploadData(file: File, token: string): Promise<UploadRespo
   }
 }
 
-export async function getInitialData(): Promise<FilterResponse> {
+export async function getInitialData(offset: number = 0, limit: number = 20): Promise<PaginatedFilterResponse> {
   try {
-    const response = await fetch(`${API_BASE_URL}/data/initial`, {
+    const response = await fetch(`${API_BASE_URL}/data/initial?offset=${offset}&limit=${limit}`, {
       method: "GET",
     });
 

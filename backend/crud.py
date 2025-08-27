@@ -1,6 +1,24 @@
 import models
 import schemas
 from playhouse.shortcuts import model_to_dict
+from typing import Optional
+
+def create_user(user: schemas.UserCreate, hashed_password: str) -> models.User:
+    """
+    Creates a new user in the database.
+    """
+    new_user = models.User.create(
+        username=user.username,
+        hashed_password=hashed_password,
+        is_admin=user.is_admin
+    )
+    return new_user
+
+def get_user_by_username(username: str) -> Optional[models.User]:
+    """
+    Retrieves a user by their username.
+    """
+    return models.User.get_or_none(models.User.username == username)
 
 def upsert_reported_ages(ages_data: schemas.ReportedAgesSchema):
     models.ReportedAges.insert(**ages_data.dict()).on_conflict(
@@ -172,6 +190,9 @@ def get_filtered_data(filters: schemas.FilterSchema):
     samples = [item.sample for item in query]
     return get_data_by_samples(samples)
 
-def get_initial_data(limit: int = 20):
-    samples = [item.sample for item in models.ReportedAges.select(models.ReportedAges.sample).limit(limit)]
+def get_initial_data(offset: int = 0, limit: int = 20):
+    samples = [item.sample for item in models.ReportedAges.select(models.ReportedAges.sample).offset(offset).limit(limit)]
     return get_data_by_samples(samples)
+
+def get_total_data_count():
+    return models.ReportedAges.select().count()

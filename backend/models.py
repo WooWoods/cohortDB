@@ -1,4 +1,4 @@
-from peewee import Model, TextField, IntegerField, FloatField, DateField
+from peewee import Model, TextField, IntegerField, FloatField, DateField, BooleanField
 from database import db
 
 class BaseModel(Model):
@@ -273,3 +273,9 @@ class Screen(BaseModel):
     lambda_dna = FloatField(null=True)
     pUC19 = FloatField(null=True)
     human_unmap = FloatField(null=True)
+
+class User(BaseModel):
+    id = IntegerField(primary_key=True)
+    username = TextField(unique=True)
+    hashed_password = TextField()
+    is_admin = BooleanField(default=False)
