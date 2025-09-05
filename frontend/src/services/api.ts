@@ -1,6 +1,6 @@
 import { toast } from "sonner";
 
-const API_BASE_URL = "http://172.20.8.24:8088/api/v1"; // Assuming backend runs on port 8000
+const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:8088/api/v1";
 
 export interface UploadResponse {
   message: string;

@@ -124,3 +124,10 @@ cohortDB/
 ---
 
 This architecture provides a solid foundation for your project. It is scalable, maintainable, and uses modern best practices.
+
+
+the logic of upload file for frontend and backend are not keep in line. you should update front according to backend, keep backend as it is. the logic is that, backend "/data/upload" endpoint accept one file a time, and judge file type by its' suffix, so you don't need a `await uploadSingleFile(agesFile, "ages_file")` function in @/frontend/src/services/api.ts , just a `uploadData` function is enough, what ever the file is, leave that work to the backend, consider about this carefully
+
+"INFO:     172.20.20.65:64079 - "POST /api/v1/data/upload HTTP/1.1" 500 Internal Server Error", error of backend, and I checked that problem may be at "ages_schema = schemas.ReportedAgesSchema(**row_data)", I guess if it is because of `nan` in some rows of upload file, which is acceptable, while the code of @/backend/schemas.py didn't handle the `nan`, review the backend code to solve this
+
+The front-end data display logic needs to be modified. Currently, upon entering the page, it immediately requests "/data/filter", but at this point, the page's `filter` request is empty, so no data is displayed, leading to a poor user experience. The correct logic should be to display data upon entering the page, either by extracting the first 20 entries from the database or by dynamic loading, where more data is loaded as the user scrolls down the page. The "/data/filter" request should only be made when the user fills out the filter form.
