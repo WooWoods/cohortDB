@@ -18,6 +18,29 @@ interface SidebarProps {
   onFilterApply: (filters: FilterCriteria) => void;
 }
 
+const FILTERABLE_COLUMNS = {
+  "age": "Age",
+  "total_bases": "Total Bases",
+  "puc19vector": "pUC19 Vector",
+  "lambda_dna_conversion_rate": "Lambda DNA Conversion Rate",
+  "human": "Human",
+  "lambda_dna": "Lambda DNA",
+  "pUC19": "pUC19",
+  "q30_rate": "Q30 Rate",
+  "mean_insert_size": "Mean Insert Size",
+  "percent_duplication": "Percent Duplication",
+  "pct_selected_bases": "Pct Selected Bases",
+  "fold_enrichment": "Fold Enrichment",
+  "zero_cvg_targets_pct": "Zero Cvg Targets Pct",
+  "mean_target_coverage": "Mean Target Coverage",
+  "pct_exc_dupe": "Pct Exc Dupe",
+  "pct_exc_off_target": "Pct Exc Off Target",
+  "fold_80_base_penalty": "Fold 80 Base Penalty",
+  "pct_target_bases_10x": "Pct Target Bases 10x",
+  "pct_target_bases_20x": "Pct Target Bases 20x",
+  "pct_target_bases_30x": "Pct Target Bases 30x",
+};
+
 const Sidebar: React.FC<SidebarProps> = ({ onFilterApply }) => {
   const [filters, setFilters] = useState<Filter[]>([]);
 
@@ -33,7 +56,7 @@ const Sidebar: React.FC<SidebarProps> = ({ onFilterApply }) => {
   });
 
   const addFilter = () => {
-    setFilters([...filters, { id: Date.now(), field: "lambda_dna_conversion_rate", operator: ">=", value: "" }]);
+    setFilters([...filters, { id: Date.now(), field: "age", operator: ">=", value: "" }]);
   };
 
   const removeFilter = (id: number) => {
@@ -54,10 +77,10 @@ const Sidebar: React.FC<SidebarProps> = ({ onFilterApply }) => {
     filters.forEach((filter) => {
       let parsedValue: number | string = filter.value;
       // Attempt to parse value as number if field is numeric
-      if (["lambda_dna_conversion_rate", "pct_selected_bases", "fold_80_base_penalty", "percent_duplication"].includes(filter.field)) {
+      if (Object.keys(FILTERABLE_COLUMNS).includes(filter.field)) {
         parsedValue = parseFloat(filter.value);
         if (isNaN(parsedValue)) {
-          toast.error(`Invalid number for ${filter.field}.`);
+          toast.error(`Invalid number for ${FILTERABLE_COLUMNS[filter.field as keyof typeof FILTERABLE_COLUMNS]}.`);
           return; // Skip this filter if value is not a valid number
         }
       }
@@ -94,10 +117,9 @@ const Sidebar: React.FC<SidebarProps> = ({ onFilterApply }) => {
               >
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="lambda_dna_conversion_rate">Lambda DNA Conversion Rate</SelectItem>
-                  <SelectItem value="pct_selected_bases">Pct Selected Bases</SelectItem>
-                  <SelectItem value="fold_80_base_penalty">Fold 80 Base Penalty</SelectItem>
-                  <SelectItem value="percent_duplication">Percent Duplication</SelectItem>
+                  {Object.entries(FILTERABLE_COLUMNS).map(([value, label]) => (
+                    <SelectItem key={value} value={value}>{label}</SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
               <Button variant="ghost" size="icon" onClick={() => removeFilter(filter.id)}>
