@@ -278,5 +278,8 @@ class Screen(BaseModel):
 class User(BaseModel):
     id = IntegerField(primary_key=True)
     username = TextField(unique=True)
+    email = TextField(unique=True)
     hashed_password = TextField()
+    is_active = BooleanField(default=True)
     is_admin = BooleanField(default=False)
+    status = TextField(default='pending')

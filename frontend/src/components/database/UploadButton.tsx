@@ -12,11 +12,10 @@ interface UploadButtonProps {
 
 const UploadButton: React.FC<UploadButtonProps> = ({ onUploadSuccess }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const { isAuthenticated } = useAuth(); // Get isAuthenticated from AuthContext
+  const { isAuthenticated, token } = useAuth(); // Get isAuthenticated and token from AuthContext
 
   const uploadMutation = useMutation({
     mutationFn: async (file: File) => {
-      const token = localStorage.getItem('access_token'); // Retrieve token from localStorage
       if (!token) {
         throw new Error("No authentication token found. Please log in.");
       }

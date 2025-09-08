@@ -11,8 +11,8 @@ def create_user(user: schemas.UserCreate, hashed_password: str) -> models.User:
     """
     new_user = models.User.create(
         username=user.username,
-        hashed_password=hashed_password,
-        is_admin=user.is_admin
+        email=user.email,
+        hashed_password=hashed_password
     )
     return new_user
 
@@ -21,6 +21,19 @@ def get_user_by_username(username: str) -> Optional[models.User]:
     Retrieves a user by their username.
     """
     return models.User.get_or_none(models.User.username == username)
+
+def get_users(skip: int = 0, limit: int = 100):
+    return list(models.User.select().offset(skip).limit(limit))
+
+def get_user(user_id: int):
+    return models.User.get_or_none(models.User.id == user_id)
+
+def update_user_status(user_id: int, status: str):
+    user = models.User.get_or_none(models.User.id == user_id)
+    if user:
+        user.status = status
+        user.save()
+    return user
 
 def upsert_reported_ages(ages_data: schemas.ReportedAgesSchema):
     models.ReportedAges.insert(**ages_data.dict()).on_conflict(

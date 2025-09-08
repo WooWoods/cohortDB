@@ -6,6 +6,7 @@ import { PlusCircle, X, Search } from "lucide-react";
 import { filterData, FilterCriteria, FilterResponse, searchData } from "@/services/api";
 import { toast } from "sonner";
 import { useMutation } from "@tanstack/react-query";
+import { useAuth } from "@/context/AuthContext";
 
 type Filter = {
   id: number;
@@ -46,13 +47,17 @@ const FILTERABLE_COLUMNS = {
 };
 
 const Sidebar: React.FC<SidebarProps> = ({ onFilterApply, onSearch, onClearSearch, onClearFilter }) => {
+  const { token } = useAuth();
   const [filters, setFilters] = useState<Filter[]>([]);
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [isSearchActive, setIsSearchActive] = useState(false);
   const [isFilterActive, setIsFilterActive] = useState(false);
 
   const filterMutation = useMutation({
-    mutationFn: (criteria: FilterCriteria) => filterData(criteria),
+    mutationFn: (criteria: FilterCriteria) => {
+      if (!token) throw new Error("No token found");
+      return filterData(criteria, token);
+    },
     onSuccess: () => {
       toast.success("Data filtered successfully!");
       // The actual data update will be handled by DatabasePage based on the filters passed
@@ -122,9 +127,9 @@ const Sidebar: React.FC<SidebarProps> = ({ onFilterApply, onSearch, onClearSearc
 
   const handleSearch = async (event: React.FormEvent) => {
     event.preventDefault();
-    if (searchQuery.trim()) {
+    if (searchQuery.trim() && token) {
       try {
-        const result = await searchData(searchQuery);
+        const result = await searchData(searchQuery, token);
         onSearch(result);
         setIsSearchActive(true);
       } catch (error) {

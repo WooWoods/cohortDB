@@ -32,8 +32,10 @@ export interface FilterResponse {
 export interface User {
   id: number;
   username: string;
+  email: string;
+  is_active: boolean;
   is_admin: boolean;
-  created_at: string;
+  status: string;
 }
 
 export async function uploadData(file: File, token: string): Promise<UploadResponse> {
@@ -63,10 +65,13 @@ export async function uploadData(file: File, token: string): Promise<UploadRespo
   }
 }
 
-export async function getInitialData(offset: number = 0, limit: number = 20): Promise<PaginatedFilterResponse> {
+export async function getInitialData(offset: number = 0, limit: number = 20, token: string): Promise<PaginatedFilterResponse> {
   try {
     const response = await fetch(`${API_BASE_URL}/data/initial?offset=${offset}&limit=${limit}`, {
       method: "GET",
+      headers: {
+        "Authorization": `Bearer ${token}`,
+      },
     });
 
     if (!response.ok) {
@@ -82,11 +87,14 @@ export async function getInitialData(offset: number = 0, limit: number = 20): Pr
   }
 }
 
-export async function downloadData(samples: string[]): Promise<Blob> {
+export async function downloadData(samples: string[], token: string): Promise<Blob> {
   const sampleQuery = samples.join(",");
   try {
     const response = await fetch(`${API_BASE_URL}/data/download?samples=${sampleQuery}`, {
       method: "GET",
+      headers: {
+        "Authorization": `Bearer ${token}`,
+      },
     });
 
     if (!response.ok) {
@@ -102,12 +110,13 @@ export async function downloadData(samples: string[]): Promise<Blob> {
   }
 }
 
-export async function filterData(filters: FilterCriteria): Promise<FilterResponse> {
+export async function filterData(filters: FilterCriteria, token: string): Promise<FilterResponse> {
   try {
     const response = await fetch(`${API_BASE_URL}/data/filter`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`,
       },
       body: JSON.stringify(filters),
     });
@@ -125,13 +134,16 @@ export async function filterData(filters: FilterCriteria): Promise<FilterRespons
   }
 }
 
-export async function searchData(searchTerm: string): Promise<FilterResponse> {
+export async function searchData(searchTerm: string, token: string): Promise<FilterResponse> {
   const formData = new FormData();
   formData.append("search_term", searchTerm);
 
   try {
     const response = await fetch(`${API_BASE_URL}/data/search`, {
       method: "POST",
+      headers: {
+        "Authorization": `Bearer ${token}`,
+      },
       body: formData,
     });
 
@@ -198,6 +210,95 @@ export async function getMe(token: string): Promise<User> {
   } catch (error: unknown) {
     const errorMessage = error instanceof Error ? error.message : "An unknown error occurred while fetching user data.";
     toast.error(`Failed to get user data: ${errorMessage}`);
+    throw error;
+  }
+}
+
+export async function registerUser(username: string, email: string, password: string): Promise<User> {
+  try {
+    const response = await fetch(`${API_BASE_URL}/auth/register`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ username, email, password }),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.detail || "Registration failed.");
+    }
+
+    return response.json();
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : "An unknown error occurred during registration.";
+    toast.error(`Registration failed: ${errorMessage}`);
+    throw error;
+  }
+}
+
+export async function getUsers(token: string): Promise<User[]> {
+  try {
+    const response = await fetch(`${API_BASE_URL}/admin/users`, {
+      method: "GET",
+      headers: {
+        "Authorization": `Bearer ${token}`,
+      },
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.detail || "Failed to fetch users.");
+    }
+
+    return response.json();
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : "An unknown error occurred while fetching users.";
+    toast.error(`Failed to get users: ${errorMessage}`);
+    throw error;
+  }
+}
+
+export async function approveUser(userId: number, token: string): Promise<User> {
+  try {
+    const response = await fetch(`${API_BASE_URL}/admin/users/${userId}/approve`, {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${token}`,
+      },
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.detail || "Failed to approve user.");
+    }
+
+    return response.json();
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : "An unknown error occurred while approving user.";
+    toast.error(`Failed to approve user: ${errorMessage}`);
+    throw error;
+  }
+}
+
+export async function rejectUser(userId: number, token: string): Promise<User> {
+  try {
+    const response = await fetch(`${API_BASE_URL}/admin/users/${userId}/reject`, {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${token}`,
+      },
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.detail || "Failed to reject user.");
+    }
+
+    return response.json();
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : "An unknown error occurred while rejecting user.";
+    toast.error(`Failed to reject user: ${errorMessage}`);
     throw error;
   }
 }

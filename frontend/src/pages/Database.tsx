@@ -6,6 +6,7 @@ import Footer from "@/components/database/Footer";
 import { useState, useEffect, useCallback } from "react";
 import { FilterResponse, filterData, getInitialData, FilterCriteria, PaginatedFilterResponse } from "@/services/api";
 import { useInfiniteQuery } from "@tanstack/react-query";
+import { useAuth } from "@/context/AuthContext";
 
 const PAGE_SIZE = 20;
 
@@ -15,6 +16,8 @@ const DatabasePage = () => {
   const [isFiltering, setIsFiltering] = useState(false);
   const [isSearching, setIsSearching] = useState(false);
   const [isFilterActive, setIsFilterActive] = useState(false);
+
+  const { token } = useAuth();
 
   const {
     data,
@@ -27,7 +30,10 @@ const DatabasePage = () => {
     refetch,
   } = useInfiniteQuery<PaginatedFilterResponse, Error>({
     queryKey: ["cohortData"],
-    queryFn: async ({ pageParam = 0 }) => getInitialData(pageParam as number, PAGE_SIZE),
+    queryFn: async ({ pageParam = 0 }) => {
+      if (!token) throw new Error("No token found");
+      return getInitialData(pageParam as number, PAGE_SIZE, token)
+    },
     getNextPageParam: (lastPage, allPages) => {
       const loadedCount = allPages.reduce((acc, page) => {
         const tableNames = Object.keys(page.data);
@@ -69,11 +75,12 @@ const DatabasePage = () => {
   }, [isError, error]);
 
   const handleFilterApply = async (filters: FilterCriteria) => {
+    if (!token) return;
     setIsFiltering(true);
     setIsSearching(false);
     if (Object.keys(filters.filters).length > 0) {
       setIsFilterActive(true);
-      const data = await filterData(filters);
+      const data = await filterData(filters, token);
       setFilteredData(data);
       setTotalCount(Object.values(data).flat().length);
     } else {
