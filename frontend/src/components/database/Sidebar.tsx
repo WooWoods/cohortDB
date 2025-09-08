@@ -132,7 +132,7 @@ const Sidebar: React.FC<SidebarProps> = ({ onFilterApply, onSearch }) => {
       <form onSubmit={handleSearch} className="relative w-full mb-4">
         <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
         <Input
-          placeholder="Search samples..."
+          placeholder="Search samples (e.g., CAP33_MS003, CAP33_MS024, CAP33*, MS*)"
           className="pl-8"
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}

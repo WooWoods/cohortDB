@@ -97,29 +97,50 @@ def upsert_screen(screen_data: schemas.ScreenSchema):
 import re
 
 def get_samples_by_search_term(search_term: str) -> list[str]:
-    if search_term.endswith("*"):
-        # This is a prefix search
-        prefix = search_term[:-1].strip() # Remove the trailing '*'
-        
-        # Remove "CAP\d+WGS_" or "CAP\d+_" prefix from the search term if present
-        cleaned_prefix = re.sub(r"CAP\d+(WGS_|_)", "", prefix)
-        
-        # Ensure the search term starts with "MO" or "MS"
-        if not cleaned_prefix.startswith(("MO", "MS")):
-            return []
-        
-        # Construct a LIKE query for the relevant part of the sample name
-        like_pattern = f"%{cleaned_prefix}%"
-        
-        # Search across all models for samples matching the pattern
-        # We need to get distinct samples from one of the tables, e.g., ReportedAges
-        samples = models.ReportedAges.select(models.ReportedAges.sample).where(
-            models.ReportedAges.sample.ilike(like_pattern)
-        ).distinct()
+    search_terms = [term.strip() for term in search_term.split(',')]
+    
+    sample_query = None
+    ptid_query = None
+
+    for term in search_terms:
+        if term.endswith("*"):
+            prefix = term[:-1]
+            if re.match(r"CAP\d+", prefix):
+                if sample_query is None:
+                    sample_query = (models.ReportedAges.sample.startswith(prefix))
+                else:
+                    sample_query |= (models.ReportedAges.sample.startswith(prefix))
+            elif prefix.startswith("MS"):
+                if ptid_query is None:
+                    ptid_query = (models.ReportedAges.ptid.startswith(prefix))
+                else:
+                    ptid_query |= (models.ReportedAges.ptid.startswith(prefix))
+        else:
+            if re.match(r"CAP\d+", term):
+                if sample_query is None:
+                    sample_query = (models.ReportedAges.sample == term)
+                else:
+                    sample_query |= (models.ReportedAges.sample == term)
+            elif term.startswith("MS"):
+                if ptid_query is None:
+                    ptid_query = (models.ReportedAges.ptid == term)
+                else:
+                    ptid_query |= (models.ReportedAges.ptid == term)
+
+    final_query = None
+    if sample_query is not None:
+        final_query = sample_query
+    if ptid_query is not None:
+        if final_query is not None:
+            final_query |= ptid_query
+        else:
+            final_query = ptid_query
+            
+    if final_query is not None:
+        samples = models.ReportedAges.select(models.ReportedAges.sample).where(final_query).distinct()
         return [s.sample for s in samples]
-    else:
-        # Exact match search
-        return [search_term]
+    
+    return []
 
 def get_data_by_samples(samples: list[str]):
     if not samples:
