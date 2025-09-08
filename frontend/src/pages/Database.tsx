@@ -1,7 +1,7 @@
 import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from "@/components/ui/resizable";
 import Sidebar from "@/components/database/Sidebar";
 import Header from "@/components/database/Header";
-import FilteredDataTable from "@/components/database/FilteredDataTable"; // Import the new component
+import FilteredDataTable from "@/components/database/FilteredDataTable";
 import Footer from "@/components/database/Footer";
 import { useState, useEffect, useCallback } from "react";
 import { FilterResponse, filterData, getInitialData, FilterCriteria, PaginatedFilterResponse } from "@/services/api";
@@ -12,7 +12,9 @@ const PAGE_SIZE = 20;
 const DatabasePage = () => {
   const [filteredData, setFilteredData] = useState<FilterResponse>({});
   const [totalCount, setTotalCount] = useState(0);
-  const [isFiltering, setIsFiltering] = useState(false); // To manage filter state
+  const [isFiltering, setIsFiltering] = useState(false);
+  const [isSearching, setIsSearching] = useState(false);
+  const [isFilterActive, setIsFilterActive] = useState(false);
 
   const {
     data,
@@ -68,12 +70,14 @@ const DatabasePage = () => {
 
   const handleFilterApply = async (filters: FilterCriteria) => {
     setIsFiltering(true);
+    setIsSearching(false);
     if (Object.keys(filters.filters).length > 0) {
+      setIsFilterActive(true);
       const data = await filterData(filters);
       setFilteredData(data);
-      setTotalCount(Object.values(data).flat().length); // Assuming filterData returns all matching records
+      setTotalCount(Object.values(data).flat().length);
     } else {
-      // If filters are cleared, refetch initial data
+      setIsFilterActive(false);
       refetch();
     }
     setIsFiltering(false);
@@ -85,17 +89,28 @@ const DatabasePage = () => {
 
   const handleSearch = async (data: FilterResponse) => {
     setIsFiltering(true);
+    setIsSearching(true);
     setFilteredData(data);
-    setTotalCount(Object.values(data).flat().length); // Assuming searchData returns all matching records
+    setTotalCount(Object.values(data).flat().length);
     setIsFiltering(false);
+  };
+
+  const handleClearSearch = () => {
+    setIsSearching(false);
+    refetch();
+  };
+
+  const handleClearFilter = () => {
+    setIsFilterActive(false);
+    refetch();
   };
 
   const handleScroll = useCallback((event: React.UIEvent<HTMLDivElement>) => {
     const { scrollTop, scrollHeight, clientHeight } = event.currentTarget;
-    if (scrollHeight - scrollTop - clientHeight < 50 && hasNextPage && !isFetchingNextPage && !isFiltering) {
+    if (scrollHeight - scrollTop - clientHeight < 50 && hasNextPage && !isFetchingNextPage && !isFiltering && !isSearching && !isFilterActive) {
       fetchNextPage();
     }
-  }, [fetchNextPage, hasNextPage, isFetchingNextPage, isFiltering]);
+  }, [fetchNextPage, hasNextPage, isFetchingNextPage, isFiltering, isSearching, isFilterActive]);
 
   return (
     <div className="h-screen w-screen">
@@ -110,7 +125,7 @@ const DatabasePage = () => {
           collapsible={true}
           collapsedSize={0}
         >
-          <Sidebar onFilterApply={handleFilterApply} onSearch={handleSearch} />
+          <Sidebar onFilterApply={handleFilterApply} onSearch={handleSearch} onClearSearch={handleClearSearch} onClearFilter={handleClearFilter} />
         </ResizablePanel>
         <ResizableHandle withHandle />
         <ResizablePanel defaultSize={75}>

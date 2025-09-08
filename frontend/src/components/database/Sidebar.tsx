@@ -18,6 +18,8 @@ type Filter = {
 interface SidebarProps {
   onFilterApply: (filters: FilterCriteria) => void;
   onSearch: (data: FilterResponse) => void;
+  onClearSearch: () => void;
+  onClearFilter: () => void;
 }
 
 const FILTERABLE_COLUMNS = {
@@ -43,9 +45,11 @@ const FILTERABLE_COLUMNS = {
   "pct_target_bases_30x": "Pct Target Bases 30x",
 };
 
-const Sidebar: React.FC<SidebarProps> = ({ onFilterApply, onSearch }) => {
+const Sidebar: React.FC<SidebarProps> = ({ onFilterApply, onSearch, onClearSearch, onClearFilter }) => {
   const [filters, setFilters] = useState<Filter[]>([]);
   const [searchQuery, setSearchQuery] = useState<string>("");
+  const [isSearchActive, setIsSearchActive] = useState(false);
+  const [isFilterActive, setIsFilterActive] = useState(false);
 
   const filterMutation = useMutation({
     mutationFn: (criteria: FilterCriteria) => filterData(criteria),
@@ -82,6 +86,7 @@ const Sidebar: React.FC<SidebarProps> = ({ onFilterApply, onSearch }) => {
   };
 
   const applyFilters = () => {
+    setIsFilterActive(true);
     const criteria: FilterCriteria = {
       filters: [],
       logical_operators: [],
@@ -121,10 +126,23 @@ const Sidebar: React.FC<SidebarProps> = ({ onFilterApply, onSearch }) => {
       try {
         const result = await searchData(searchQuery);
         onSearch(result);
+        setIsSearchActive(true);
       } catch (error) {
         console.error("Search failed:", error);
       }
     }
+  };
+
+  const handleClear = () => {
+    setSearchQuery("");
+    setIsSearchActive(false);
+    onClearSearch();
+  };
+
+  const handleClearFilter = () => {
+    setFilters([]);
+    setIsFilterActive(false);
+    onClearFilter();
   };
 
   return (
@@ -137,6 +155,17 @@ const Sidebar: React.FC<SidebarProps> = ({ onFilterApply, onSearch }) => {
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
         />
+        {isSearchActive && (
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            className="absolute right-2 top-1/2 -translate-y-1/2 h-6 w-6"
+            onClick={handleClear}
+          >
+            <X className="h-4 w-4" />
+          </Button>
+        )}
       </form>
       <h2 className="text-lg font-semibold mb-4">Filters</h2>
       <div className="space-y-4 flex-grow overflow-auto">
@@ -205,6 +234,11 @@ const Sidebar: React.FC<SidebarProps> = ({ onFilterApply, onSearch }) => {
       <Button onClick={applyFilters} disabled={filterMutation.isPending} className="mt-2">
         {filterMutation.isPending ? "Applying..." : "Apply Filters"}
       </Button>
+      {isFilterActive && (
+        <Button onClick={handleClearFilter} className="mt-2">
+          Clear Filter
+        </Button>
+      )}
     </div>
   );
 };
