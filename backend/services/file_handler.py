@@ -266,12 +266,46 @@ def process_qc_file(qc_file):
 
 def generate_excel_file(samples: list[str]):
     data = crud.get_data_by_samples(samples)
-    
+
+    DESIRED_COLUMNS = [
+        "sample", "ptid", "gender", "esti_gender", "age", "total_bases",
+        "puc19vector", "lambda_dna_conversion_rate", "human", "lambda_dna",
+        "pUC19", "q30_rate", "mean_insert_size", "percent_duplication",
+        "pct_selected_bases", "fold_enrichment", "zero_cvg_targets_pct",
+        "mean_target_coverage", "pct_exc_dupe", "pct_exc_off_target",
+        "fold_80_base_penalty", "pct_target_bases_10x",
+        "pct_target_bases_20x", "pct_target_bases_30x",
+    ]
+
+    # Process data to create a combined view
+    sample_map = {}
+    for table_name, records in data.items():
+        for record in records:
+            sample_id = record.get("sample")
+            if sample_id:
+                if sample_id not in sample_map:
+                    sample_map[sample_id] = {}
+                sample_map[sample_id].update(record)
+
+    combined_data = []
+    # Use the original samples list to maintain order
+    for sample_id in samples:
+        if sample_id in sample_map:
+            record = sample_map[sample_id]
+            processed_record = {col: record.get(col) for col in DESIRED_COLUMNS}
+            combined_data.append(processed_record)
+
     output = BytesIO()
     with pd.ExcelWriter(output, engine='openpyxl') as writer:
+        # Write the combined sheet first
+        if combined_data:
+            combined_df = pd.DataFrame(combined_data)
+            combined_df.to_excel(writer, sheet_name="Sheet1", index=False)
+
+        # Write the raw data sheets
         for table_name, records in data.items():
             if records:
-                df = pd.DataFrame([record for record in records])
+                df = pd.DataFrame(records)
                 df.to_excel(writer, sheet_name=table_name, index=False)
     
     output.seek(0)
