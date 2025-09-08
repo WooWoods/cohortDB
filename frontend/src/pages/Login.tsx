@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -60,6 +60,14 @@ const LoginPage: React.FC = () => {
             </Button>
           </form>
         </CardContent>
+        <CardFooter>
+          <div className="text-center text-sm w-full">
+            Don't have an account?{" "}
+            <Link to="/register" className="underline">
+              Register
+            </Link>
+          </div>
+        </CardFooter>
       </Card>
     </div>
   );
