@@ -110,18 +110,18 @@ def get_samples_by_search_term(search_term: str) -> list[str]:
                     sample_query = (models.ReportedAges.sample.startswith(prefix))
                 else:
                     sample_query |= (models.ReportedAges.sample.startswith(prefix))
-            elif prefix.startswith("MS"):
+            else:
                 if ptid_query is None:
-                    ptid_query = (models.ReportedAges.ptid.startswith(prefix))
+                    ptid_query = models.ReportedAges.ptid.startswith(prefix)
                 else:
-                    ptid_query |= (models.ReportedAges.ptid.startswith(prefix))
+                    ptid_query |= models.ReportedAges.ptid.startswith(prefix)
         else:
             if re.match(r"CAP\d+", term):
                 if sample_query is None:
                     sample_query = (models.ReportedAges.sample == term)
                 else:
                     sample_query |= (models.ReportedAges.sample == term)
-            elif term.startswith("MS"):
+            else:
                 if ptid_query is None:
                     ptid_query = (models.ReportedAges.ptid == term)
                 else:
