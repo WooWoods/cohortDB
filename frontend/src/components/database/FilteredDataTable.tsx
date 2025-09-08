@@ -10,6 +10,7 @@ import { FilterResponse } from "@/services/api";
 
 interface FilteredDataTableProps {
   data: FilterResponse;
+  onScroll?: (event: React.UIEvent<HTMLDivElement>) => void;
 }
 
 const DESIRED_COLUMNS = [
@@ -58,7 +59,10 @@ const processData = (data: FilterResponse) => {
   return combinedRecords;
 };
 
-const FilteredDataTable: React.FC<FilteredDataTableProps> = ({ data }) => {
+const FilteredDataTable: React.FC<FilteredDataTableProps> = ({
+  data,
+  onScroll,
+}) => {
   const processedData = processData(data);
 
   if (processedData.length === 0) {
@@ -76,6 +80,7 @@ const FilteredDataTable: React.FC<FilteredDataTableProps> = ({ data }) => {
         className="border-separate border-spacing-0 w-full"
         maxHeight="480px"
         showBorder
+        onScroll={onScroll}
       >
         <TableHeader>
           <TableRow>

@@ -5,15 +5,17 @@ import { cn } from "@/lib/utils";
 interface TableProps extends React.HTMLAttributes<HTMLTableElement> {
   maxHeight?: string;
   showBorder?: boolean;
+  onScroll?: (event: React.UIEvent<HTMLDivElement>) => void;
 }
 
 const Table = React.forwardRef<HTMLTableElement, TableProps>(
-  ({ className, maxHeight, showBorder, ...props }, ref) => (
+  ({ className, maxHeight, showBorder, onScroll, ...props }, ref) => (
     <div
       className={cn("relative w-full overflow-auto", {
         "border rounded-lg": showBorder,
       })}
       style={{ maxHeight: maxHeight }}
+      onScroll={onScroll}
     >
       <table
         ref={ref}

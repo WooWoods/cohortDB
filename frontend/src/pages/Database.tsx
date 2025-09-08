@@ -3,7 +3,7 @@ import Sidebar from "@/components/database/Sidebar";
 import Header from "@/components/database/Header";
 import FilteredDataTable from "@/components/database/FilteredDataTable"; // Import the new component
 import Footer from "@/components/database/Footer";
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { FilterResponse, filterData, getInitialData, FilterCriteria, PaginatedFilterResponse } from "@/services/api";
 import { useInfiniteQuery } from "@tanstack/react-query";
 
@@ -13,7 +13,6 @@ const DatabasePage = () => {
   const [filteredData, setFilteredData] = useState<FilterResponse>({});
   const [totalCount, setTotalCount] = useState(0);
   const [isFiltering, setIsFiltering] = useState(false); // To manage filter state
-  const scrollRef = useRef<HTMLDivElement>(null);
 
   const {
     data,
@@ -91,23 +90,12 @@ const DatabasePage = () => {
     setIsFiltering(false);
   };
 
-  const handleScroll = useCallback(() => {
-    const { current } = scrollRef;
-    if (current && !isFetchingNextPage && hasNextPage && !isFiltering) {
-      const { scrollTop, scrollHeight, clientHeight } = current;
-      if (scrollHeight - scrollTop - clientHeight < 50) { // 50px from bottom
-        fetchNextPage();
-      }
+  const handleScroll = useCallback((event: React.UIEvent<HTMLDivElement>) => {
+    const { scrollTop, scrollHeight, clientHeight } = event.currentTarget;
+    if (scrollHeight - scrollTop - clientHeight < 50 && hasNextPage && !isFetchingNextPage && !isFiltering) {
+      fetchNextPage();
     }
-  }, [fetchNextPage, isFetchingNextPage, hasNextPage, isFiltering]);
-
-  useEffect(() => {
-    const { current } = scrollRef;
-    if (current) {
-      current.addEventListener("scroll", handleScroll);
-      return () => current.removeEventListener("scroll", handleScroll);
-    }
-  }, [handleScroll]);
+  }, [fetchNextPage, hasNextPage, isFetchingNextPage, isFiltering]);
 
   return (
     <div className="h-screen w-screen">
@@ -128,7 +116,7 @@ const DatabasePage = () => {
         <ResizablePanel defaultSize={75}>
           <div className="flex flex-col h-full p-4 space-y-4">
             <Header onUploadSuccess={handleUploadSuccess} onSearch={handleSearch} />
-            <div className="flex-grow overflow-auto" ref={scrollRef}>
+            <div className="flex-grow overflow-auto">
               {isLoading && !isFetchingNextPage ? (
                 <div className="flex items-center justify-center h-full text-muted-foreground">
                   Loading data...
@@ -139,7 +127,7 @@ const DatabasePage = () => {
                 </div>
               ) : (
                 <>
-                  <FilteredDataTable data={filteredData} />
+                  <FilteredDataTable data={filteredData} onScroll={handleScroll} />
                   {isFetchingNextPage && (
                     <div className="flex items-center justify-center p-4 text-muted-foreground">
                       Loading more data...
