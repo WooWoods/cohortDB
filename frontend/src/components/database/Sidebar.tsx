@@ -2,8 +2,8 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { PlusCircle, X } from "lucide-react";
-import { filterData, FilterCriteria, FilterResponse } from "@/services/api";
+import { PlusCircle, X, Search } from "lucide-react";
+import { filterData, FilterCriteria, FilterResponse, searchData } from "@/services/api";
 import { toast } from "sonner";
 import { useMutation } from "@tanstack/react-query";
 
@@ -17,6 +17,7 @@ type Filter = {
 
 interface SidebarProps {
   onFilterApply: (filters: FilterCriteria) => void;
+  onSearch: (data: FilterResponse) => void;
 }
 
 const FILTERABLE_COLUMNS = {
@@ -42,8 +43,9 @@ const FILTERABLE_COLUMNS = {
   "pct_target_bases_30x": "Pct Target Bases 30x",
 };
 
-const Sidebar: React.FC<SidebarProps> = ({ onFilterApply }) => {
+const Sidebar: React.FC<SidebarProps> = ({ onFilterApply, onSearch }) => {
   const [filters, setFilters] = useState<Filter[]>([]);
+  const [searchQuery, setSearchQuery] = useState<string>("");
 
   const filterMutation = useMutation({
     mutationFn: (criteria: FilterCriteria) => filterData(criteria),
@@ -113,16 +115,29 @@ const Sidebar: React.FC<SidebarProps> = ({ onFilterApply }) => {
     }
   };
 
-  const operatorMap: { [key: string]: string } = {
-    "equals": "==",
-    "greaterThan": ">",
-    "lessThan": "<",
-    "greaterThanOrEqual": ">=",
-    "lessThanOrEqual": "<=",
+  const handleSearch = async (event: React.FormEvent) => {
+    event.preventDefault();
+    if (searchQuery.trim()) {
+      try {
+        const result = await searchData(searchQuery);
+        onSearch(result);
+      } catch (error) {
+        console.error("Search failed:", error);
+      }
+    }
   };
 
   return (
     <div className="p-4 h-full flex flex-col">
+      <form onSubmit={handleSearch} className="relative w-full mb-4">
+        <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+        <Input
+          placeholder="Search samples..."
+          className="pl-8"
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+        />
+      </form>
       <h2 className="text-lg font-semibold mb-4">Filters</h2>
       <div className="space-y-4 flex-grow overflow-auto">
         {filters.map((filter, index) => (

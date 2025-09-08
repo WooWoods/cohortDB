@@ -110,12 +110,12 @@ const DatabasePage = () => {
           collapsible={true}
           collapsedSize={0}
         >
-          <Sidebar onFilterApply={handleFilterApply} />
+          <Sidebar onFilterApply={handleFilterApply} onSearch={handleSearch} />
         </ResizablePanel>
         <ResizableHandle withHandle />
         <ResizablePanel defaultSize={75}>
           <div className="flex flex-col h-full p-4 space-y-4">
-            <Header onUploadSuccess={handleUploadSuccess} onSearch={handleSearch} />
+            <Header onUploadSuccess={handleUploadSuccess} />
             <div className="flex-grow overflow-auto">
               {isLoading && !isFetchingNextPage ? (
                 <div className="flex items-center justify-center h-full text-muted-foreground">

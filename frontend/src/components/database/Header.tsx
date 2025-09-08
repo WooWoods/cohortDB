@@ -1,33 +1,16 @@
-import { Input } from "@/components/ui/input";
-import { Search } from "lucide-react";
 import UploadButton from "./UploadButton";
-import { searchData, FilterResponse } from "@/services/api";
-import { useState } from "react";
+import { FilterResponse } from "@/services/api";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/context/AuthContext";
 import { useNavigate } from "react-router-dom";
 
 interface HeaderProps {
   onUploadSuccess: () => void;
-  onSearch: (data: FilterResponse) => void;
 }
 
-const Header: React.FC<HeaderProps> = ({ onUploadSuccess, onSearch }) => {
-  const [searchQuery, setSearchQuery] = useState<string>("");
+const Header: React.FC<HeaderProps> = ({ onUploadSuccess }) => {
   const { isAuthenticated, user, logout } = useAuth();
   const navigate = useNavigate();
-
-  const handleSearch = async (event: React.FormEvent) => {
-    event.preventDefault();
-    if (searchQuery.trim()) {
-      try {
-        const result = await searchData(searchQuery);
-        onSearch(result);
-      } catch (error) {
-        console.error("Search failed:", error);
-      }
-    }
-  };
 
   const handleLoginClick = () => {
     navigate('/login');
@@ -39,16 +22,7 @@ const Header: React.FC<HeaderProps> = ({ onUploadSuccess, onSearch }) => {
   };
 
   return (
-    <div className="flex items-center justify-between">
-      <form onSubmit={handleSearch} className="relative w-full max-w-lg">
-        <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-        <Input
-          placeholder="Search samples (e.g., MO250000026 or prefix: MO*)"
-          className="pl-8"
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-        />
-      </form>
+    <div className="flex items-center justify-end">
       {isAuthenticated && user?.is_admin ? (
         <div className="flex items-center space-x-2">
           <UploadButton onUploadSuccess={onUploadSuccess} />
