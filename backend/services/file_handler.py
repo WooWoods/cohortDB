@@ -7,6 +7,15 @@ from typing import Type, Any, Optional
 from pydantic import BaseModel
 import re
 
+def extract_base_sample_id(sample_name: str) -> str:
+    """
+    Extracts the base sample ID from a sample name like "CAP41WGS_MO026-preflight-R1".
+    """
+    match = re.match(r"(.+?)(?:-preflight-R\d+)?$", sample_name)
+    if match:
+        return match.group(1)
+    return sample_name
+
 def replace_nan_with_none(data: dict) -> dict:
     """
     Replaces NaN values in a dictionary with None.
@@ -175,7 +184,7 @@ def process_qc_file(qc_file):
                 converted_row_data = convert_numeric_fields(cleaned_row_data, schemas.PicardAlignmentSummarySchema)
                 picard_alignment_summary_schema = schemas.PicardAlignmentSummarySchema(**converted_row_data)
                 crud.upsert_picard_alignment_summary(picard_alignment_summary_schema)
-        elif sheet_name == "picard.gcBias.txt":
+        elif sheet_name == "picard.gcBias":
             for _, row in df.iterrows():
                 row_data = row.to_dict()
                 
@@ -215,9 +224,7 @@ def process_qc_file(qc_file):
                 
                 cleaned_row_data = replace_nan_with_none(row_data)
                 converted_row_data = convert_numeric_fields(cleaned_row_data, schemas.PicardHsSchema)
-                print(converted_row_data)
                 picard_hs_schema = schemas.PicardHsSchema(**converted_row_data)
-                print(picard_hs_schema)
                 crud.upsert_picard_hs(picard_hs_schema)
         elif sheet_name == "picard.insertSize.txt":
             for _, row in df.iterrows():
@@ -249,16 +256,18 @@ def process_qc_file(qc_file):
                 crud.upsert_picard_quality_yield(picard_quality_yield_schema)
         elif sheet_name == "screen":
             for _, row in df.iterrows():
-                row_data = row.to_dict()
+                sample_name = row.get("Sample")
+                base_sample_id = extract_base_sample_id(sample_name) if sample_name else None
                 
-                # Prioritize 'Sample' (correct sample name) and remove 'SAMPLE' if it's empty
-                if "SAMPLE" in row_data and (pd.isna(row_data["SAMPLE"]) or row_data["SAMPLE"] is None):
-                    del row_data["SAMPLE"]
+                row_data = {
+                    "sample": base_sample_id,
+                    "sample_r1r2": sample_name,
+                    "human": row.get("Human"),
+                    "lambda_dna": row.get("λ-DNA"),
+                    "pUC19": row.get("pUC19"),
+                    "human_unmap": row.get("Human_unmap")
+                }
                 
-                row_data = normalize_keys_to_snake_case(row_data) # Normalize keys
-                
-                if 'dna' in row_data: # This check should happen after normalization
-                    row_data['lambda_dna'] = row_data.pop('dna')
                 cleaned_row_data = replace_nan_with_none(row_data)
                 converted_row_data = convert_numeric_fields(cleaned_row_data, schemas.ScreenSchema)
                 screen_schema = schemas.ScreenSchema(**converted_row_data)

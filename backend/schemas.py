@@ -303,6 +303,7 @@ class PicardQualityYieldSchema(BaseModel):
 
 class ScreenSchema(BaseModel):
     sample: str
+    sample_r1r2: Optional[str] = None
     human: Optional[float] = None
     lambda_dna: Optional[float] = None
     pUC19: Optional[float] = None

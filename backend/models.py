@@ -269,6 +269,7 @@ class PicardQualityYield(BaseModel):
 
 class Screen(BaseModel):
     sample = TextField(primary_key=True)
+    sample_r1r2 = TextField(null=True)
     human = FloatField(null=True)
     lambda_dna = FloatField(null=True)
     pUC19 = FloatField(null=True)
