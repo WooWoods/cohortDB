@@ -7,10 +7,15 @@ export interface UploadResponse {
   message: string;
 }
 
+export interface Filter {
+  field: string;
+  operator: string;
+  value: string | number;
+}
+
 export interface FilterCriteria {
-  filters: {
-    [key: string]: [string, number];
-  };
+  filters: Filter[];
+  logical_operators: ("and" | "or")[];
 }
 
 export interface PaginatedFilterResponse {

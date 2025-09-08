@@ -12,6 +12,7 @@ type Filter = {
   field: string;
   operator: string;
   value: string;
+  logical_operator?: "and" | "or";
 };
 
 interface SidebarProps {
@@ -56,7 +57,16 @@ const Sidebar: React.FC<SidebarProps> = ({ onFilterApply }) => {
   });
 
   const addFilter = () => {
-    setFilters([...filters, { id: Date.now(), field: "age", operator: ">=", value: "" }]);
+    const newFilter: Filter = {
+      id: Date.now(),
+      field: "age",
+      operator: ">=",
+      value: "",
+    };
+    if (filters.length > 0) {
+      newFilter.logical_operator = "and";
+    }
+    setFilters([...filters, newFilter]);
   };
 
   const removeFilter = (id: number) => {
@@ -71,28 +81,35 @@ const Sidebar: React.FC<SidebarProps> = ({ onFilterApply }) => {
 
   const applyFilters = () => {
     const criteria: FilterCriteria = {
-      filters: {},
+      filters: [],
+      logical_operators: [],
     };
 
-    filters.forEach((filter) => {
+    filters.forEach((filter, index) => {
       let parsedValue: number | string = filter.value;
-      // Attempt to parse value as number if field is numeric
       if (Object.keys(FILTERABLE_COLUMNS).includes(filter.field)) {
         parsedValue = parseFloat(filter.value);
         if (isNaN(parsedValue)) {
           toast.error(`Invalid number for ${FILTERABLE_COLUMNS[filter.field as keyof typeof FILTERABLE_COLUMNS]}.`);
-          return; // Skip this filter if value is not a valid number
+          return;
         }
       }
-      criteria.filters[filter.field] = [filter.operator, parsedValue as number];
+      criteria.filters.push({
+        field: filter.field,
+        operator: filter.operator,
+        value: parsedValue,
+      });
+      if (index > 0 && filter.logical_operator) {
+        criteria.logical_operators.push(filter.logical_operator);
+      }
     });
 
-    if (Object.keys(criteria.filters).length > 0) {
+    if (criteria.filters.length > 0) {
       filterMutation.mutate(criteria);
-      onFilterApply(criteria); // Pass the criteria to the parent
+      onFilterApply(criteria);
     } else {
       toast.info("No filters applied. Displaying initial data.");
-      onFilterApply({ filters: {} }); // Pass empty filters to trigger initial data load
+      onFilterApply({ filters: [], logical_operators: [] });
     }
   };
 
@@ -108,10 +125,29 @@ const Sidebar: React.FC<SidebarProps> = ({ onFilterApply }) => {
     <div className="p-4 h-full flex flex-col">
       <h2 className="text-lg font-semibold mb-4">Filters</h2>
       <div className="space-y-4 flex-grow overflow-auto">
-        {filters.map((filter) => (
-          <div key={filter.id} className="p-2 border rounded-lg space-y-2">
-            <div className="flex items-center space-x-2">
-              <Select
+        {filters.map((filter, index) => (
+          <div key={filter.id}>
+            {index > 0 && (
+              <div className="flex justify-center my-2">
+                <Select
+                  value={filter.logical_operator}
+                  onValueChange={(value) =>
+                    updateFilter(filter.id, { logical_operator: value as "and" | "or" })
+                  }
+                >
+                  <SelectTrigger className="w-[80px]">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="and">AND</SelectItem>
+                    <SelectItem value="or">OR</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+            <div className="p-2 border rounded-lg space-y-2">
+              <div className="flex items-center space-x-2">
+                <Select
                 value={filter.field}
                 onValueChange={(value) => updateFilter(filter.id, { field: value })}
               >
@@ -144,6 +180,7 @@ const Sidebar: React.FC<SidebarProps> = ({ onFilterApply }) => {
               value={filter.value}
               onChange={(e) => updateFilter(filter.id, { value: e.target.value })}
             />
+            </div>
           </div>
         ))}
       </div>

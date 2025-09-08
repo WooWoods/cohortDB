@@ -1,6 +1,6 @@
 from pydantic import BaseModel
 from datetime import date
-from typing import Optional, Dict, Tuple
+from typing import Optional, List, Union
 
 class UserBase(BaseModel):
     username: str
@@ -24,8 +24,14 @@ class Token(BaseModel):
     access_token: str
     token_type: str
 
+class Filter(BaseModel):
+    field: str
+    operator: str
+    value: Union[str, float]
+
 class FilterSchema(BaseModel):
-    filters: Dict[str, Tuple[str, float]]
+    filters: List[Filter]
+    logical_operators: List[str]
 
 class ReportedAgesSchema(BaseModel):
     sample: str

@@ -145,6 +145,7 @@ async def download_data(samples: str):
 
 @app.post("/api/v1/data/filter")
 async def filter_data(filters: schemas.FilterSchema):
+    print(filters)
     try:
         data = crud.get_filtered_data(filters)
         return data

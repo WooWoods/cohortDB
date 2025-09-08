@@ -2,6 +2,8 @@ import models
 import schemas
 from playhouse.shortcuts import model_to_dict
 from typing import Optional
+from peewee import Expression
+import operator
 
 def create_user(user: schemas.UserCreate, hashed_password: str) -> models.User:
     """
@@ -157,36 +159,65 @@ def get_data_by_samples(samples: list[str]):
     }
 
 def get_filtered_data(filters: schemas.FilterSchema):
-    query = models.BsRate.select(models.BsRate.sample)
+    base_model = models.ReportedAges
+    query = base_model.select(base_model.sample)
 
     field_to_model = {
+        "age": models.ReportedAges,
+        "total_bases": models.Fastp,
+        "puc19vector": models.BsRate,
         "lambda_dna_conversion_rate": models.BsRate,
-        "pct_selected_bases": models.PicardHs,
-        "fold_80_base_penalty": models.PicardHs,
+        "human": models.Screen,
+        "lambda_dna": models.Screen,
+        "pUC19": models.Screen,
+        "q30_rate": models.Fastp,
+        "mean_insert_size": models.PicardInsertSize,
         "percent_duplication": models.Markdup,
+        "pct_selected_bases": models.PicardHs,
+        "fold_enrichment": models.PicardHs,
+        "zero_cvg_targets_pct": models.PicardHs,
+        "mean_target_coverage": models.PicardHs,
+        "pct_exc_dupe": models.PicardHs,
+        "pct_exc_off_target": models.PicardHs,
+        "fold_80_base_penalty": models.PicardHs,
+        "pct_target_bases_10x": models.PicardHs,
+        "pct_target_bases_20x": models.PicardHs,
+        "pct_target_bases_30x": models.PicardHs,
     }
 
-    joined_models = set([models.BsRate])
+    joined_models = {base_model}
+    expressions = []
 
-    for field_name, (operator, value) in filters.filters.items():
-        model = field_to_model.get(field_name)
-        if model and model not in joined_models:
-            query = query.join(model, on=(models.BsRate.sample == model.sample))
+    for f in filters.filters:
+        model = field_to_model.get(f.field)
+        if not model:
+            continue
+
+        if model not in joined_models:
+            query = query.join(model, on=(base_model.sample == model.sample))
             joined_models.add(model)
 
-        if hasattr(model, field_name):
-            field = getattr(model, field_name)
-            if operator == ">=":
-                query = query.where(field >= value)
-            elif operator == "<=":
-                query = query.where(field <= value)
-            elif operator == ">":
-                query = query.where(field > value)
-            elif operator == "<":
-                query = query.where(field < value)
-            elif operator == "==":
-                query = query.where(field == value)
+        field = getattr(model, f.field)
+        op_map = {
+            ">=": operator.ge,
+            "<=": operator.le,
+            ">": operator.gt,
+            "<": operator.lt,
+            "==": operator.eq,
+        }
+        expressions.append(op_map[f.operator](field, f.value))
 
+    if not expressions:
+        return get_data_by_samples([])
+
+    final_expression = expressions[0]
+    for i, op in enumerate(filters.logical_operators):
+        if op == "and":
+            final_expression &= expressions[i + 1]
+        elif op == "or":
+            final_expression |= expressions[i + 1]
+
+    query = query.where(final_expression)
     samples = [item.sample for item in query]
     return get_data_by_samples(samples)
 
